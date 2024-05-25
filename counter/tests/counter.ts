@@ -2,51 +2,50 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Counter } from "../target/types/counter";
 import { PublicKey } from "@solana/web3.js";
-import { BN } from "bn.js";
+import { expect } from "chai";
 
 describe("counter", () => {
   // Configure the client to use the local cluster.
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
+  anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.Counter as Program<Counter>;
-  const payer = provider.wallet as anchor.Wallet;
 
-  it("InitializeCounter", async () => {
+  it("Is initialized!", async () => {
     const [counterPDA] = PublicKey.findProgramAddressSync(
       [Buffer.from(anchor.utils.bytes.utf8.encode("counter"))],
       program.programId
     );
 
     const tx = await program.methods
-      .initializeCounter({
-        initCount: new BN(10),
-      })
+      .initializeCounter()
       .accounts({
         counter: counterPDA,
       })
       .rpc();
+    console.log("Your transaction signature", tx);
 
     await program.account.counter.fetch(counterPDA).then((counter) => {
-      console.log("Counter initialized to", counter.count.toString());
+      console.log("Counter initialized to: ", counter.count.toNumber());
+      expect(counter.count.toNumber()).equals(0);
     });
   });
 
-  it("IncrementCounter", async () => {
+  it("Can increment!", async () => {
     const [counterPDA] = PublicKey.findProgramAddressSync(
       [Buffer.from(anchor.utils.bytes.utf8.encode("counter"))],
       program.programId
     );
 
-    const tx = await program.methods
-      .increaseCount()
+    await program.methods
+      .increaseCounter()
       .accounts({
         counter: counterPDA,
       })
       .rpc();
 
     await program.account.counter.fetch(counterPDA).then((counter) => {
-      console.log("Counter increased to", counter.count.toString());
+      console.log("Counter incremented to: ", counter.count.toNumber());
+      expect(counter.count.toNumber()).equals(1);
     });
   });
 });

@@ -1,53 +1,44 @@
 use anchor_lang::prelude::*;
 
-declare_id!("7hVw37hUSM7aZConaSHExcbNyN2kqvNqvWWMWFYyieB7");
+declare_id!("14sUS6ibSoXE6bLrFZGv1md1fRdpDu3Z2T4zfpB1UpU3");
 
 #[program]
 pub mod counter {
     use super::*;
 
-    pub fn initialize_counter(
-        ctx: Context<InitializeCounterContext>,
-        data: InitializeCounterInstructionData
-    ) -> Result<()> {
+    pub fn initialize_counter(ctx: Context<InitializeCounterContext>) -> Result<()> {
         let counter = &mut ctx.accounts.counter;
-        counter.count = data.init_count;
-        msg!("Counter initialized!");
+        counter.count = 0u64;
         Ok(())
     }
 
-    pub fn increase_count(ctx: Context<IncreaseCountContext>) -> Result<()> {
+    pub fn increase_counter(ctx: Context<IncreaseCounterContext>) -> Result<()> {
         let counter = &mut ctx.accounts.counter;
-        counter.count += 1;
-        msg!("Counter increased! New count: {}", counter.count);
+        counter.count += 1u64;
+
+        msg!("Counter increased to {}", counter.count);
         Ok(())
     }
 }
 
 #[derive(Accounts)]
-#[instruction(data: InitializeCounterInstructionData)]
 pub struct InitializeCounterContext<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub signer: Signer<'info>,
 
-    #[account(init, payer = payer, seeds = [b"counter"], bump, space = 8 + 8)]
+    #[account(init, payer = signer, space = 8 + 8, seeds = [b"counter"], bump)]
     pub counter: Account<'info, Counter>,
 
     pub system_program: Program<'info, System>,
 }
 
 #[account]
-pub struct InitializeCounterInstructionData {
-    pub init_count: u64,
-}
-
-#[account]
 pub struct Counter {
-    count: u64,
+    pub count: u64,
 }
 
 #[derive(Accounts)]
-pub struct IncreaseCountContext<'info> {
+pub struct IncreaseCounterContext<'info> {
     #[account(mut, seeds = [b"counter"], bump)]
     pub counter: Account<'info, Counter>,
 }
