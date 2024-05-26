@@ -26,7 +26,7 @@ pub struct InitializeCounterContext<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 
-    #[account(init, payer = signer, space = 8 + 8, seeds = [b"counter"], bump)]
+    #[account(init, payer = signer, space = 8 + 8, seeds = [b"counter".as_ref()], bump)]
     pub counter: Account<'info, Counter>,
 
     pub system_program: Program<'info, System>,
@@ -39,6 +39,6 @@ pub struct Counter {
 
 #[derive(Accounts)]
 pub struct IncreaseCounterContext<'info> {
-    #[account(mut, seeds = [b"counter"], bump)]
+    #[account(mut, seeds = [b"counter".as_ref()], bump)]
     pub counter: Account<'info, Counter>,
 }
